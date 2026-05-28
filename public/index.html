@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realify | Meta Ads Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .sidebar-item:hover { background-color: #eff6ff; color: #2563eb; }
+        .sidebar-item.active { background-color: #eff6ff; color: #2563eb; border-right: 4px solid #2563eb; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-200 flex-shrink-0 hidden md:flex flex-col">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold text-blue-600 flex items-center gap-2">
+                <i class="fa-solid fa-rocket"></i> Realify
+            </h1>
+        </div>
+        <nav id="sidebar-nav" class="flex-1 px-4 space-y-1">
+            <a href="javascript:void(0)" onclick="switchTab('dashboard', this)" class="sidebar-item active flex items-center gap-3 px-4 py-3 text-slate-600 transition-all rounded-lg">
+                <i class="fa-solid fa-gauge"></i> Dashboard
+            </a>
+            <a href="javascript:void(0)" onclick="switchTab('campaigns', this)" class="sidebar-item flex items-center gap-3 px-4 py-3 text-slate-600 transition-all rounded-lg">
+                <i class="fa-solid fa-bullhorn"></i> Campaigns
+            </a>
+            <a href="javascript:void(0)" onclick="switchTab('insights', this)" class="sidebar-item flex items-center gap-3 px-4 py-3 text-slate-600 transition-all rounded-lg">
+                <i class="fa-solid fa-chart-line"></i> Insights
+            </a>
+            <a href="javascript:void(0)" onclick="switchTab('settings', this)" class="sidebar-item flex items-center gap-3 px-4 py-3 text-slate-600 transition-all rounded-lg">
+                <i class="fa-solid fa-gear"></i> Settings
+            </a>
+        </nav>
+        <div class="p-4 border-t border-slate-100">
+            <div id="status-badge" class="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-full text-sm font-medium">
+                <span class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span>
+                Connecting...
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        
+        <!-- Header -->
+        <header class="h-16 bg-white border-b border-slate-200 glass flex items-center justify-between px-8 z-10">
+            <h2 class="text-lg font-semibold text-slate-800" id="page-title">Management Dashboard</h2>
+            <div class="flex items-center gap-4">
+                <button onclick="loadAll()" class="p-2 text-slate-500 hover:text-blue-600 transition-colors">
+                    <i class="fa-solid fa-rotate"></i>
+                </button>
+                <div class="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                    KV
+                </div>
+            </div>
+        </header>
+
+        <!-- Dynamic View -->
+        <div class="flex-1 overflow-y-auto p-8 space-y-8" id="main-view">
+            
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <p class="text-sm text-slate-500 font-medium whitespace-nowrap">Total Ad Revenue</p>
+                    <h3 class="text-2xl font-bold text-slate-800 mt-1" id="stat-revenue">₹0.00</h3>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <p class="text-sm text-slate-500 font-medium whitespace-nowrap">Total Spend</p>
+                    <h3 class="text-2xl font-bold text-slate-800 mt-1" id="stat-spend">₹0.00</h3>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <p class="text-sm text-slate-500 font-medium whitespace-nowrap">Total Reach</p>
+                    <h3 class="text-2xl font-bold text-slate-800 mt-1" id="stat-reach">0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <p class="text-sm text-slate-500 font-medium">ROAS</p>
+                    <h3 class="text-2xl font-bold text-green-600 mt-1" id="stat-roas">0.0x</h3>
+                </div>
+            </div>
+
+            <!-- Campaign Section -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                    <h3 class="font-bold text-slate-800">Active Campaigns</h3>
+                    <button onclick="toggleModal('campaign-modal')" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-plus text-xs"></i> New Campaign
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                            <tr>
+                                <th class="px-6 py-4">Name</th>
+                                <th class="px-6 py-4">Objective</th>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4">Daily Budget</th>
+                                <th class="px-6 py-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="campaign-list" class="divide-y divide-slate-100 text-sm">
+                            <!-- JS loaded -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div id="campaign-modal" class="fixed inset-0 bg-slate-900/50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-xl p-8">
+            <h3 class="text-xl font-bold text-slate-800 mb-6">Create New Campaign</h3>
+            <form id="campaign-form" onsubmit="handleCreateCampaign(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Campaign Name</label>
+                    <input type="text" name="name" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Objective</label>
+                    <select name="objective" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+                        <option value="OUTCOME_SALES">Sales</option>
+                        <option value="OUTCOME_LEADS">Leads</option>
+                        <option value="OUTCOME_TRAFFIC">Traffic</option>
+                        <option value="OUTCOME_AWARENESS">Awareness</option>
+                    </select>
+                </div>
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="toggleModal('campaign-modal')" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg font-semibold hover:bg-slate-200">Cancel</button>
+                    <button type="submit" class="flex-1 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 shadow-md shadow-blue-200">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Insights Modal -->
+    <div id="insights-modal" class="fixed inset-0 bg-slate-900/50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl p-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-xl font-bold text-slate-800">Campaign Insights</h3>
+                <button onclick="toggleModal('insights-modal')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div id="insight-content">
+                <div class="animate-pulse flex space-y-4 flex-col">
+                    <div class="h-20 bg-slate-100 rounded-xl"></div>
+                    <div class="h-20 bg-slate-100 rounded-xl"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:8080";
+
+        async function init() {
+            await checkStatus();
+            switchTab('dashboard', document.querySelector('.sidebar-item'));
+        }
+
+        async function checkStatus() {
+            const badge = document.getElementById('status-badge');
+            try {
+                const res = await fetch(`${API_BASE}/meta/status`);
+                const data = await res.json();
+                if (data.connected) {
+                    badge.className = "flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm font-medium border border-green-100";
+                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-500"></span> Live: ${data.user}`;
+                } else {
+                    throw new Error();
+                }
+            } catch {
+                badge.className = "flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-full text-sm font-medium border border-red-100";
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span> Disconnected`;
+            }
+        }
+
+        async function loadCampaigns() {
+            const list = document.getElementById('campaign-list');
+            list.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 animate-pulse">Fetching records...</td></tr>`;
+
+            try {
+                const res = await fetch(`${API_BASE}/meta/campaigns`);
+                const { campaigns } = await res.json();
+                
+                if (!campaigns || campaigns.length === 0) {
+                    list.innerHTML = `<tr><td colspan="5" class="p-12 text-center text-slate-400">No campaigns found</td></tr>`;
+                    return;
+                }
+
+                list.innerHTML = campaigns.map(c => `
+                    <tr class="hover:bg-slate-50 transition-colors group">
+                        <td class="px-6 py-4 font-semibold text-slate-700">${c.name}</td>
+                        <td class="px-6 py-4 text-slate-500">${c.objective}</td>
+                        <td class="px-6 py-4">
+                            <span class="${c.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'} px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                                ${c.status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-slate-700 font-medium">₹${c.daily_budget.toLocaleString()}</td>
+                        <td class="px-6 py-4 text-right space-x-2">
+                            <button onclick="loadInsights('${c.id}')" class="text-blue-600 hover:text-blue-800 font-semibold text-xs">
+                                <i class="fa-solid fa-chart-column"></i> Insights
+                            </button>
+                            <button onclick="updateCampaign('${c.id}', '${c.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE'}')" class="text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-all">
+                                <i class="fa-solid fa-power-off"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                // Load global aggregate stats (simplified for demo)
+                updateGlobalStats(campaigns);
+
+            } catch (e) {
+                console.error("API Load Error:", e);
+                list.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-400">Failed to load API</td></tr>`;
+            }
+        }
+
+        async function handleCreateCampaign(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const payload = {
+                name: formData.get('name'),
+                objective: formData.get('objective'),
+                status: "PAUSED",
+                special_ad_categories: []
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/meta/campaigns`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    toggleModal('campaign-modal');
+                    loadCampaigns();
+                }
+            } catch (e) { alert("Creation failed"); }
+        }
+
+        function switchTab(tab, el) {
+            // Update Active State
+            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+            el.classList.add('active');
+
+            const view = document.getElementById('main-view');
+            const title = document.getElementById('page-title');
+
+            if (tab === 'dashboard') {
+                title.innerText = "Management Dashboard";
+                renderDashboard();
+            } else if (tab === 'campaigns') {
+                title.innerText = "Campaign Management";
+                renderCampaigns();
+            } else if (tab === 'insights') {
+                title.innerText = "Analytics & Insights";
+                view.innerHTML = `
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center">
+                        <i class="fa-solid fa-chart-pie text-4xl text-blue-100 mb-4 block"></i>
+                        <h3 class="text-xl font-bold text-slate-800">Advanced Insights</h3>
+                        <p class="text-slate-500 mt-2">Deep dive into your Meta Pixel and Catalog performance.</p>
+                        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                           <div class="p-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                             <p class="text-xs font-bold text-slate-400 uppercase">Pixel Activity</p>
+                             <p class="text-lg font-bold text-slate-600 mt-1">Coming Soon</p>
+                           </div>
+                           <div class="p-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                             <p class="text-xs font-bold text-slate-400 uppercase">Catalog Match</p>
+                             <p class="text-lg font-bold text-slate-600 mt-1">Ready to Sync</p>
+                           </div>
+                        </div>
+                    </div>`;
+            } else if (tab === 'settings') {
+                title.innerText = "Account Settings";
+                view.innerHTML = `
+                    <div class="max-w-2xl bg-white rounded-2xl shadow-sm border border-slate-100 divide-y divide-slate-100">
+                        <div class="p-8">
+                            <h3 class="font-bold text-slate-800 mb-4">Meta Integration</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                    <div>
+                                        <p class="font-semibold text-slate-700">Account ID</p>
+                                        <p class="text-xs text-slate-500">${localStorage.getItem('ad_account_id') || 'act_xxxxxxxx'}</p>
+                                    </div>
+                                    <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold">CONNECTED</span>
+                                </div>
+                                <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                    <div>
+                                        <p class="font-semibold text-slate-700">Webhook Status</p>
+                                        <p class="text-xs text-slate-500">Listening for lead events</p>
+                                    </div>
+                                    <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-bold">ACTIVE</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-8">
+                            <h3 class="font-bold text-slate-800 mb-4">Application Preferences</h3>
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm text-slate-600">Email Notifications for new leads</p>
+                                <div class="w-10 h-5 bg-blue-600 rounded-full relative">
+                                    <div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+        }
+
+        async function renderDashboard() {
+            const view = document.getElementById('main-view');
+            view.innerHTML = `
+                <div id="stats-container" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <p class="text-sm text-slate-500 font-medium whitespace-nowrap">Total Ad Revenue</p>
+                        <h3 class="text-2xl font-bold text-slate-800 mt-1" id="stat-revenue">₹0.00</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <p class="text-sm text-slate-500 font-medium whitespace-nowrap">Total Spend</p>
+                        <h3 class="text-2xl font-bold text-slate-800 mt-1" id="stat-spend">₹0.00</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <p class="text-sm text-slate-500 font-medium whitespace-nowrap">Total Reach</p>
+                        <h3 class="text-2xl font-bold text-slate-800 mt-1" id="stat-reach">0</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <p class="text-sm text-slate-500 font-medium">ROAS</p>
+                        <h3 class="text-2xl font-bold text-green-600 mt-1" id="stat-roas">0.0x</h3>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mt-8">
+                    <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                        <h3 class="font-bold text-slate-800">Active Campaigns</h3>
+                        <button onclick="toggleModal('campaign-modal')" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-plus text-xs"></i> New Campaign
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-4">Name</th>
+                                    <th class="px-6 py-4">Objective</th>
+                                    <th class="px-6 py-4">Status</th>
+                                    <th class="px-6 py-4">Daily Budget</th>
+                                    <th class="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="campaign-list" class="divide-y divide-slate-100 text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>`;
+            await loadCampaigns();
+        }
+
+        async function renderCampaigns() {
+            await renderDashboard();
+            const stats = document.getElementById('stats-container');
+            if(stats) stats.remove();
+        }
+
+        async function updateCampaign(id, status) {
+            await fetch(`${API_BASE}/meta/campaigns/${id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ status })
+            });
+            loadCampaigns();
+        }
+
+        async function loadInsights(id) {
+            toggleModal('insights-modal');
+            const content = document.getElementById('insight-content');
+            content.innerHTML = `<div class="p-12 text-center text-slate-400 animate-pulse">Calculating math...</div>`;
+            
+            try {
+                const res = await fetch(`${API_BASE}/meta/campaigns/${id}/insights`);
+                const { insights } = await res.json();
+                
+                content.innerHTML = `
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <div class="bg-blue-50 p-6 rounded-2xl">
+                            <p class="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">Spend</p>
+                            <p class="text-2xl font-bold text-slate-800">₹${insights.spend.toLocaleString()}</p>
+                        </div>
+                        <div class="bg-indigo-50 p-6 rounded-2xl">
+                            <p class="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-1">CTR</p>
+                            <p class="text-2xl font-bold text-slate-800">${insights.ctr}%</p>
+                        </div>
+                        <div class="bg-slate-50 p-6 rounded-2xl">
+                            <p class="text-xs font-bold text-slate-600 uppercase tracking-widest mb-1">Reach</p>
+                            <p class="text-2xl font-bold text-slate-800">${insights.reach.toLocaleString()}</p>
+                        </div>
+                        <div class="bg-slate-50 p-6 rounded-2xl">
+                            <p class="text-xs font-bold text-slate-600 uppercase tracking-widest mb-1">Impressions</p>
+                            <p class="text-2xl font-bold text-slate-800">${insights.impressions.toLocaleString()}</p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900 text-white p-6 rounded-2xl">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Conversions</p>
+                                <p class="text-3xl font-bold">${insights.conversions}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Revenue</p>
+                                <p class="text-3xl font-bold text-green-400">₹${insights.revenue.toLocaleString()}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch {
+                content.innerHTML = "Error loading data";
+            }
+        }
+
+        function updateGlobalStats(campaigns) {
+            const revenue = campaigns.reduce((acc, c) => acc + (c.total_revenue || 0), 0);
+            const spend = campaigns.reduce((acc, c) => acc + (c.total_spend || 0), 0);
+            const reach = campaigns.reduce((acc, c) => acc + (c.total_reach || 0), 0);
+
+            const revEl = document.getElementById('stat-revenue');
+            const spendEl = document.getElementById('stat-spend');
+            const reachEl = document.getElementById('stat-reach');
+            const roasEl = document.getElementById('stat-roas');
+
+            if (revEl) revEl.innerText = `₹${revenue.toLocaleString()}`;
+            if (spendEl) spendEl.innerText = `₹${spend.toLocaleString()}`;
+            if (reachEl) reachEl.innerText = reach.toLocaleString();
+            if (roasEl) roasEl.innerText = spend > 0 ? (revenue/spend).toFixed(2) + 'x' : '0.0x';
+        }
+
+        function toggleModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.toggle('hidden');
+        }
+
+        function loadAll() {
+            checkStatus();
+            loadCampaigns();
+        }
+
+        // Initialize on start
+        init();
+    </script>
+</body>
+</html>
