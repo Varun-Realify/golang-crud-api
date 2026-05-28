@@ -31,14 +31,19 @@ A high-performance Marketing API Engine built with Go, focusing on multi-platfor
 
 Two processes run side-by-side:
 
-```
-API Server (cmd/api)          Worker (cmd/worker)
-      │                              │
-      │  POST /meta/sync             │
-      │──► enqueue task ──► Redis ──►│
-      │    202 Accepted              │  1. Call Meta/Google API
-      │                              │  2. Upsert results to PostgreSQL
-      │                              │  3. Verify ingestion via DB query
+```mermaid
+sequenceDiagram
+    participant API as API Server (cmd/api)
+    participant Redis as Redis Queue
+    participant Worker as Worker (cmd/worker)
+    
+    API->>Redis: POST /meta/sync (Enqueue task)
+    API-->>User: 202 Accepted
+    Redis->>Worker: Dequeue task
+    Worker->>External: 1. Call Meta/Google API
+    External-->>Worker: Data
+    Worker->>DB: 2. Upsert results to PostgreSQL
+    Worker->>DB: 3. Verify ingestion via DB query
 ```
 
 ## Quick Start: Google Ads Flow
@@ -88,7 +93,7 @@ Omitting the header falls back to the system default credentials in `.env`.
 ## Tech Stack
 
 | Component | Technology |
-|---|---|
+| :--- | :--- |
 | Language | Go 1.20+ |
 | Database | PostgreSQL + GORM |
 | Router | Gorilla Mux |
@@ -97,7 +102,7 @@ Omitting the header falls back to the system default credentials in `.env`.
 
 ## Project Structure
 
-```
+```text
 ├── cmd/
 │   ├── api/        # HTTP server entry point
 │   └── worker/     # Background task worker entry point
