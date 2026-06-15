@@ -36,11 +36,21 @@
             <a href="javascript:void(0)" onclick="switchTab('settings', this)" class="sidebar-item flex items-center gap-3 px-4 py-3 text-slate-600 transition-all rounded-lg">
                 <i class="fa-solid fa-gear"></i> Settings
             </a>
+            <div class="pt-2">
+                <a href="javascript:void(0)" onclick="switchTab('notifications', this)" class="sidebar-item flex items-center gap-3 px-4 py-3 text-slate-600 transition-all rounded-lg relative">
+                    <i class="fa-solid fa-bell"></i> Notifications
+                    <span id="notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+                </a>
+            </div>
         </nav>
         <div class="p-4 border-t border-slate-100">
             <div id="status-badge" class="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-full text-sm font-medium">
                 <span class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span>
-                Connecting...
+                <span>Connecting...</span>
+            </div>
+            <div id="ws-status" class="mt-2 flex items-center gap-2 px-4 py-2 text-xs text-slate-500">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+                WebSocket: Disconnected
             </div>
         </div>
     </aside>
@@ -157,11 +167,169 @@
         </div>
     </div>
 
+    <!-- Notifications Toast Container -->
+    <div id="notifications-container" class="fixed bottom-4 right-4 space-y-2 z-50 max-w-md"></div>
+
     <script>
         const API_BASE = "http://localhost:8080";
+        const WS_BASE = "ws://localhost:8080";
+        let ws = null;
+        let recentNotifications = [];
+        const MAX_NOTIFICATIONS = 50;
+
+        // WebSocket connection handler
+        function connectWebSocket(userId) {
+            const wsUrl = `${WS_BASE}/ws?user_id=${userId}`;
+            try {
+                ws = new WebSocket(wsUrl);
+                
+                ws.onopen = () => {
+                    console.log("✓ WebSocket connected");
+                    updateWSStatus(true);
+                    showNotification("Connected", "Real-time notifications enabled", "success");
+                };
+                
+                ws.onmessage = (event) => {
+                    try {
+                        const msg = JSON.parse(event.data);
+                        if (msg.type === 'notification') {
+                            handleNotification(msg);
+                        }
+                    } catch (e) {
+                        console.error("Failed to parse notification:", e);
+                    }
+                };
+                
+                ws.onerror = (error) => {
+                    console.error("WebSocket error:", error);
+                    updateWSStatus(false);
+                };
+                
+                ws.onclose = () => {
+                    console.log("✗ WebSocket disconnected");
+                    updateWSStatus(false);
+                    // Attempt reconnect after 3 seconds
+                    setTimeout(() => connectWebSocket(userId), 3000);
+                };
+            } catch (e) {
+                console.error("WebSocket connection failed:", e);
+                updateWSStatus(false);
+            }
+        }
+
+        function updateWSStatus(isConnected) {
+            const wsStatus = document.getElementById('ws-status');
+            if (isConnected) {
+                wsStatus.className = 'mt-2 flex items-center gap-2 px-4 py-2 text-xs text-green-600';
+                wsStatus.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> WebSocket: Connected';
+            } else {
+                wsStatus.className = 'mt-2 flex items-center gap-2 px-4 py-2 text-xs text-orange-600';
+                wsStatus.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span> WebSocket: Reconnecting...';
+            }
+        }
+
+        function handleNotification(msg) {
+            recentNotifications.unshift(msg);
+            if (recentNotifications.length > MAX_NOTIFICATIONS) {
+                recentNotifications.pop();
+            }
+            updateNotificationBadge();
+
+            // Show toast notification
+            let icon = 'fa-info-circle';
+            let color = 'bg-blue-500';
+            let title = msg.task_type || 'Task Update';
+
+            if (msg.status === 'completed') {
+                icon = 'fa-check-circle';
+                color = 'bg-green-500';
+                title = '✓ ' + title;
+            } else if (msg.status === 'failed') {
+                icon = 'fa-exclamation-circle';
+                color = 'bg-red-500';
+                title = '✗ ' + title;
+            } else if (msg.status === 'processing') {
+                icon = 'fa-spinner';
+                color = 'bg-blue-500';
+                title = '⏳ ' + title;
+            } else if (msg.status === 'initiated') {
+                icon = 'fa-circle-notch';
+                color = 'bg-purple-500';
+            }
+
+            showNotification(title, msg.message || msg.error_msg || 'Status: ' + msg.status, msg.status, msg.progress);
+        }
+
+        function updateNotificationBadge() {
+            const badge = document.getElementById('notification-badge');
+            const count = recentNotifications.length;
+            if (count > 0) {
+                badge.textContent = Math.min(count, 9) + (count > 9 ? '+' : '');
+                badge.classList.remove('hidden');
+            }
+        }
+
+        function showNotification(title, message, type = 'info', progress = null) {
+            const container = document.getElementById('notifications-container');
+            const id = 'notif-' + Date.now();
+            
+            let bgColor = 'bg-blue-50 border-blue-200';
+            let textColor = 'text-blue-700';
+            let icon = 'fa-info-circle';
+            
+            if (type === 'success') {
+                bgColor = 'bg-green-50 border-green-200';
+                textColor = 'text-green-700';
+                icon = 'fa-check-circle';
+            } else if (type === 'failed') {
+                bgColor = 'bg-red-50 border-red-200';
+                textColor = 'text-red-700';
+                icon = 'fa-exclamation-circle';
+            } else if (type === 'processing') {
+                bgColor = 'bg-blue-50 border-blue-200';
+                textColor = 'text-blue-700';
+                icon = 'fa-spinner animate-spin';
+            }
+
+            const notification = document.createElement('div');
+            notification.id = id;
+            notification.className = `${bgColor} border rounded-lg p-4 shadow-lg ${textColor} text-sm animate-pulse`;
+            notification.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <i class="fa-solid ${icon} text-lg mt-0.5 flex-shrink-0"></i>
+                    <div class="flex-1">
+                        <p class="font-semibold">${title}</p>
+                        <p class="text-xs opacity-80 mt-0.5">${message}</p>
+                        ${progress !== null ? `<div class="mt-2 bg-white/50 rounded-full h-1.5 overflow-hidden"><div class="bg-current h-full" style="width:${progress}%"></div></div>` : ''}
+                    </div>
+                    <button onclick="document.getElementById('${id}').remove()" class="text-lg opacity-50 hover:opacity-100 flex-shrink-0">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(notification);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                const el = document.getElementById(id);
+                if (el) el.remove();
+            }, 5000);
+        }
 
         async function init() {
+            // Get or create user ID
+            let userId = localStorage.getItem('user_id');
+            if (!userId) {
+                // For demo, use a UUID v4
+                userId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+                localStorage.setItem('user_id', userId);
+            }
+
             await checkStatus();
+            connectWebSocket(userId);
             switchTab('dashboard', document.querySelector('.sidebar-item'));
         }
 
@@ -313,10 +481,61 @@
                             </div>
                         </div>
                     </div>`;
+            } else if (tab === 'notifications') {
+                title.innerText = "Real-Time Notifications";
+                renderNotifications();
             }
         }
 
-        async function renderDashboard() {
+        function renderNotifications() {
+            const view = document.getElementById('main-view');
+            if (recentNotifications.length === 0) {
+                view.innerHTML = `
+                    <div class="bg-white p-12 rounded-2xl shadow-sm border border-slate-100 text-center">
+                        <i class="fa-solid fa-bell-slash text-5xl text-slate-200 mb-4 block"></i>
+                        <h3 class="text-xl font-bold text-slate-600">No Notifications Yet</h3>
+                        <p class="text-slate-400 mt-2">Real-time task notifications will appear here</p>
+                    </div>`;
+                return;
+            }
+
+            let html = `<div class="space-y-3">`;
+            recentNotifications.forEach(notif => {
+                const statusColor = {
+                    'initiated': 'bg-purple-50 border-purple-200 text-purple-700',
+                    'processing': 'bg-blue-50 border-blue-200 text-blue-700',
+                    'completed': 'bg-green-50 border-green-200 text-green-700',
+                    'failed': 'bg-red-50 border-red-200 text-red-700'
+                }[notif.status] || 'bg-slate-50 border-slate-200 text-slate-700';
+
+                const statusIcon = {
+                    'initiated': 'fa-circle-notch',
+                    'processing': 'fa-spinner animate-spin',
+                    'completed': 'fa-check-circle',
+                    'failed': 'fa-exclamation-circle'
+                }[notif.status] || 'fa-info-circle';
+
+                html += `
+                    <div class="bg-white border ${statusColor} rounded-lg p-4 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3 flex-1">
+                                <i class="fa-solid ${statusIcon} text-lg"></i>
+                                <div class="flex-1">
+                                    <p class="font-semibold text-sm">${notif.task_type || 'Task'} - ${notif.status.toUpperCase()}</p>
+                                    <p class="text-xs opacity-75">${new Date(notif.timestamp).toLocaleString()}</p>
+                                </div>
+                            </div>
+                            <span class="text-xs font-mono bg-white/50 px-2 py-1 rounded">${notif.progress}%</span>
+                        </div>
+                        <p class="text-sm">${notif.message || notif.error_msg || 'Task update received'}</p>
+                        ${notif.progress !== undefined ? `<div class="bg-white/50 rounded-full h-1.5 overflow-hidden"><div class="bg-current h-full" style="width:${notif.progress}%"></div></div>` : ''}
+                    </div>`;
+            });
+            html += `</div>`;
+            view.innerHTML = html;
+        }
+
+        function renderDashboard() {
             const view = document.getElementById('main-view');
             view.innerHTML = `
                 <div id="stats-container" class="grid grid-cols-1 md:grid-cols-4 gap-6">

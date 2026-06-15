@@ -27,6 +27,13 @@ A high-performance Marketing API Engine built with Go, focusing on multi-platfor
   - Use the `/sync` endpoints to refresh your local data from live platform APIs.
   - Insights/performance endpoints always hit the live API.
 
+- **Real-Time Task Notifications via WebSocket**:
+  - Live task status updates for all async operations (initiated, processing, completed, failed).
+  - User-isolated notification streams — each user only receives notifications for their tasks.
+  - Persistent notification history stored in PostgreSQL.
+  - Cross-process pub/sub via Redis for multi-instance deployments.
+  - Progress tracking with 0-100% indicators and detailed error messages.
+
 ## Architecture
 
 Two processes run side-by-side:
@@ -89,6 +96,45 @@ GET  /meta/ads/{id}/insights -H "X-User-Email: user@example.com"
 ```
 
 Omitting the header falls back to the system default credentials in `.env`.
+
+## WebSocket Notifications
+
+All async task operations (create, sync) emit real-time notifications that can be consumed via WebSocket.
+
+### Connect to WebSocket
+
+```bash
+# Replace {user_id} with the authenticated user's UUID
+ws://localhost:8080/ws?user_id={user_id}
+```
+
+### WebSocket Message Format
+
+```json
+{
+  "type": "notification",
+  "task_id": "uuid",
+  "task_type": "google:ads_ingest",
+  "platform": "google",
+  "status": "completed",
+  "message": "Successfully synced 15 campaigns",
+  "progress": 100,
+  "timestamp": "2024-01-15T10:30:00Z",
+  "details": {
+    "total_campaigns": 15
+  },
+  "error_msg": ""
+}
+```
+
+### REST Endpoints for Notifications
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| GET | `/ws?user_id={id}` | WebSocket real-time notification stream |
+| GET | `/notifications/history` | Get past notifications (max 100) |
+| GET | `/notifications?task_id={id}` | Get specific notification by task ID |
+| GET | `/notifications/stats` | Get WebSocket connection statistics |
 
 ## Tech Stack
 

@@ -33,6 +33,7 @@ func InitDB() {
 		&models.MetaCampaignRecord{},
 		&models.MetaAdSetRecord{},
 		&models.MetaAdRecord{},
+		&models.TaskNotification{},
 	)
 	log.Println("Database migration completed")
 }

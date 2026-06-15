@@ -29,6 +29,9 @@ func main() {
 	workers.InitClient()
 	defer workers.CloseClient()
 
+	// Initialize WebSocket
+	handlers.InitWebSocket()
+
 	// Setup Router
 	r := mux.NewRouter()
 
@@ -76,6 +79,12 @@ func main() {
 	r.HandleFunc("/google/keywords", handlers.CreateGoogleKeywords).Methods("POST")
 	r.HandleFunc("/google/keywords", handlers.ListGoogleKeywords).Methods("GET")
 	r.HandleFunc("/google/keywords", handlers.DeleteGoogleKeyword).Methods("DELETE")
+
+	// WebSocket Notification Routes
+	r.HandleFunc("/ws", handlers.HandleWebSocket).Methods("GET")
+	r.HandleFunc("/notifications/history", handlers.GetNotificationHistory).Methods("GET")
+	r.HandleFunc("/notifications", handlers.GetNotificationByTaskID).Methods("GET")
+	r.HandleFunc("/notifications/stats", handlers.GetWSStats).Methods("GET")
 
 	// Apply CORS
 	c := cors.New(cors.Options{
