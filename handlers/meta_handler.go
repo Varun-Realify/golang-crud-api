@@ -94,6 +94,7 @@ func GetAllCampaigns(w http.ResponseWriter, r *http.Request) {
 func SyncCampaigns(w http.ResponseWriter, r *http.Request) {
 	user := GetUserContext(r)
 	if err := workers.EnqueueTask(workers.TypeMetaAdsIngest, workers.MetaAdsIngestPayload{
+		UserID:      user.ID,
 		AdAccountID: user.MetaAdAccountID,
 		AccessToken: user.MetaAccessToken,
 		Type:        "campaign",
@@ -129,6 +130,7 @@ func CreateCampaign(w http.ResponseWriter, r *http.Request) {
 
 	user := GetUserContext(r)
 	if err := workers.EnqueueTask(workers.TypeMetaCampaignCreate, workers.MetaCampaignCreatePayload{
+		UserID:      user.ID,
 		AdAccountID: user.MetaAdAccountID,
 		AccessToken: user.MetaAccessToken,
 		Req:         req,
@@ -164,6 +166,7 @@ func CreateAdSet(w http.ResponseWriter, r *http.Request) {
 
 	user := GetUserContext(r)
 	if err := workers.EnqueueTask(workers.TypeMetaAdSetCreate, workers.MetaAdSetCreatePayload{
+		UserID:      user.ID,
 		AdAccountID: user.MetaAdAccountID,
 		AccessToken: user.MetaAccessToken,
 		PixelID:     user.MetaPixelID,
@@ -205,6 +208,7 @@ func CreateAd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := workers.EnqueueTask(workers.TypeMetaAdCreate, workers.MetaAdCreatePayload{
+		UserID:      user.ID,
 		AdAccountID: user.MetaAdAccountID,
 		AccessToken: user.MetaAccessToken,
 		PageID:      user.MetaPageID,

@@ -316,6 +316,13 @@
             }, 5000);
         }
 
+        function metaHeaders(extra = {}) {
+            const email = localStorage.getItem('user_email');
+            const headers = { 'Content-Type': 'application/json', ...extra };
+            if (email) headers['X-User-Email'] = email;
+            return headers;
+        }
+
         async function init() {
             let userId = localStorage.getItem('user_id');
             if (!userId) {
@@ -323,6 +330,7 @@
                 const user = await res.json();
                 userId = user.id;
                 localStorage.setItem('user_id', userId);
+                localStorage.setItem('user_email', user.email);
             }
             await checkStatus();
             connectWebSocket(userId);
@@ -332,7 +340,7 @@
         async function checkStatus() {
             const badge = document.getElementById('status-badge');
             try {
-                const res = await fetch(`${API_BASE}/meta/status`);
+                const res = await fetch(`${API_BASE}/meta/status`, { headers: metaHeaders() });
                 const data = await res.json();
                 if (data.connected) {
                     badge.className = "flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm font-medium border border-green-100";
@@ -351,7 +359,7 @@
             list.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 animate-pulse">Fetching records...</td></tr>`;
 
             try {
-                const res = await fetch(`${API_BASE}/meta/campaigns`);
+                const res = await fetch(`${API_BASE}/meta/campaigns`, { headers: metaHeaders() });
                 const { campaigns } = await res.json();
                 
                 if (!campaigns || campaigns.length === 0) {
@@ -402,7 +410,7 @@
             try {
                 const res = await fetch(`${API_BASE}/meta/campaigns`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: metaHeaders(),
                     body: JSON.stringify(payload)
                 });
                 if (res.ok) {
@@ -586,7 +594,7 @@
         async function updateCampaign(id, status) {
             await fetch(`${API_BASE}/meta/campaigns/${id}`, {
                 method: 'PATCH',
-                headers: {'Content-Type': 'application/json'},
+                headers: metaHeaders(),
                 body: JSON.stringify({ status })
             });
             loadCampaigns();
@@ -598,7 +606,7 @@
             content.innerHTML = `<div class="p-12 text-center text-slate-400 animate-pulse">Calculating math...</div>`;
             
             try {
-                const res = await fetch(`${API_BASE}/meta/campaigns/${id}/insights`);
+                const res = await fetch(`${API_BASE}/meta/campaigns/${id}/insights`, { headers: metaHeaders() });
                 const { insights } = await res.json();
                 
                 content.innerHTML = `
