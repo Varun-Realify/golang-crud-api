@@ -66,11 +66,11 @@ func main() {
 	r.HandleFunc("/google/sync", handlers.SyncGoogleCampaigns).Methods("POST")
 	r.HandleFunc("/google/campaigns", handlers.CreateGoogleCampaign).Methods("POST")
 	r.HandleFunc("/google/campaigns", handlers.DeleteGoogleCampaign).Methods("DELETE")
-	r.HandleFunc("/google/campaigns/{id}/insights", handlers.GetGoogleCampaignPerformanceInsights).Methods("GET")
+	// r.HandleFunc("/google/campaigns/{id}/insights", handlers.GetGoogleCampaignPerformanceInsights).Methods("GET")
 
 	r.HandleFunc("/google/adgroups", handlers.ListGoogleAdGroups).Methods("GET")
 	r.HandleFunc("/google/adgroups", handlers.CreateGoogleAdGroup).Methods("POST")
-	r.HandleFunc("/google/adgroups/{id}/insights", handlers.GetGoogleAdGroupPerformanceInsights).Methods("GET")
+	// r.HandleFunc("/google/adgroups/{id}/insights", handlers.GetGoogleAdGroupPerformanceInsights).Methods("GET")
 
 	r.HandleFunc("/google/ads", handlers.ListGoogleAds).Methods("GET")
 	r.HandleFunc("/google/ads", handlers.CreateGoogleAd).Methods("POST")

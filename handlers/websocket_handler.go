@@ -7,6 +7,7 @@ import (
 
 	"Realify/database"
 	"Realify/models"
+
 	wsmanager "Realify/websocket"
 
 	"github.com/gorilla/websocket"
@@ -15,29 +16,19 @@ import (
 // Global WebSocket manager instance
 var WSManager *wsmanager.Manager
 
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
 // InitWebSocket initializes the WebSocket manager
 func InitWebSocket() {
 	WSManager = wsmanager.NewManager()
 	WSManager.Start()
 }
 
-// WebSocketUpgrade upgrades HTTP connection to WebSocket
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		// In production, implement proper CORS checks
-		return true
-	},
-}
-
 // HandleWebSocket handles WebSocket connections
-// @Summary WebSocket Notifications
-// @Description WebSocket endpoint for real-time task notifications
-// @Tags notifications
-// @Param user_id query string true "User ID"
-// @Success 101 "Switching Protocols"
-// @Failure 400 {object} map[string]string
 // @Router /ws [get]
 func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
@@ -46,25 +37,16 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "user_id query parameter is required", http.StatusBadRequest)
 		return
 	}
-
-	// Verify user exists
 	var user models.User
 	if err := database.DB.Where("id = ?", userID).First(&user).Error; err != nil {
 		http.Error(w, "User not found", http.StatusUnauthorized)
 		return
 	}
-
-	// Upgrade HTTP connection to WebSocket
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		// The upgrader may already have written an HTTP error response.
-		// Log the error and return without calling http.Error to avoid
-		// a second WriteHeader (which causes a superfluous WriteHeader warning).
 		log.Printf("WebSocket upgrade failed for user %s: %v", userID, err)
 		return
 	}
-
-	// Handle the connection
 	WSManager.HandleConnection(conn, userID)
 }
 
