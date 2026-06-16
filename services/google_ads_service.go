@@ -52,7 +52,8 @@ func googleAdsRequest(method string, path string, payload interface{}) ([]byte, 
 
 	fmt.Printf("DEBUG: [%s] %s\n", method, url)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 60 * time.Second}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

@@ -3,7 +3,7 @@ package main
 // @title Realify API
 // @version 1.0
 // @description Multi-Platform Ads Management API (Meta & Google) for Realify.
-// @host localhost:8080
+// @host localhost:8081
 // @BasePath /
 
 import (

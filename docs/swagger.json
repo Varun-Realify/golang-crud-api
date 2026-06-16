@@ -1,0 +1,1289 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Multi-Platform Ads Management API (Meta \u0026 Google) for Realify.",
+        "title": "Realify API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8081",
+    "basePath": "/",
+    "paths": {
+        "/callback": {
+            "get": {
+                "description": "Receives the auth code from Google and exchanges it for tokens",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "google_auth"
+                ],
+                "summary": "Google Ads OAuth Callback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Auth Code from Google",
+                        "name": "code",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/google/adgroups": {
+            "get": {
+                "description": "Fetch all ad groups for a specific campaign",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "google_adgroups"
+                ],
+                "summary": "List Google Ad Groups",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Campaign Resource Name",
+                        "name": "campaign_resource_name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    }
+                }
+            },
+            "post": {
+                "description": "Queues Google Ads ad group creation as a background task. Returns 202 immediately.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "google_adgroups"
+                ],
+                "summary": "Create Google Ad Group",
+                "parameters": [
+                    {
+                        "description": "Ad Group Details",
+                        "name": "adgroup",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdGroupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/google/adgroups/{id}/insights": {
+            "get": {
+                "description": "Fetch real-time performance metrics for a specific ad group ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "google_adgroups"
+                ],
+                "summary": "Get Google Ad Group Performance Insights",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ad Group ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/google/ads": {
+            "get": {
+                "description": "Fetch all ads for a specific ad group",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "google_ads"
+                ],
+                "summary": "List Google Ads",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ad Group Resource Name",
+                        "name": "ad_group_resource_name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    }
+                }
+            },
+            "post": {
+                "description": "Queues Google responsive search ad creation as a background task. Returns 202 immediately.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "google_ads"
+                ],
+                "summary": "Create Google Ad",
+                "parameters": [
+                    {
+                        "description": "Ad Details",
+                        "name": "ad",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleAdRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/google/auth": {
+            "get": {
+                "description": "Redirects user to Google OAuth2 consent screen",
+                "tags": [
+                    "google_auth"
+                ],
+                "summary": "Google Ads OAuth Login",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/google/campaigns": {
+            "get": {
+                "description": "Fetch all campaigns for the configured customer ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "google_campaigns"
+                ],
+                "summary": "List Google Campaigns",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    }
+                }
+            },
+            "post": {
+                "description": "Queues Google Ads campaign creation as a background task. Returns 202 immediately.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "google_campaigns"
+                ],
+                "summary": "Create Google Campaign",
+                "parameters": [
+                    {
+                        "description": "Campaign Details",
+                        "name": "campaign",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleCampaignRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Remove a campaign by its resource name",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "google_campaigns"
+                ],
+                "summary": "Delete Google Campaign",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Resource Name",
+                        "name": "resource_name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/google/campaigns/{id}/insights": {
+            "get": {
+                "description": "Fetch real-time performance metrics for a specific campaign ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "google_campaigns"
+                ],
+                "summary": "Get Google Campaign Performance Insights",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Campaign ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/google/customers": {
+            "get": {
+                "description": "Fetch a list of accessible Google Ads customer accounts",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "google"
+                ],
+                "summary": "Get Google Ads Customers",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/google/keywords": {
+            "get": {
+                "description": "Fetch all keywords for an ad group",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "google_keywords"
+                ],
+                "summary": "List Google Keywords",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ad Group Resource Name",
+                        "name": "ad_group_resource_name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    }
+                }
+            },
+            "post": {
+                "description": "Add keywords to an ad group",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "google_keywords"
+                ],
+                "summary": "Create Google Keywords",
+                "parameters": [
+                    {
+                        "description": "Keyword Details",
+                        "name": "keywords",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleKeywordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    }
+                }
+            },
+            "delete": {
+                "description": "Remove a specific keyword by resource name",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "google_keywords"
+                ],
+                "summary": "Delete Google Keyword",
+                "parameters": [
+                    {
+                        "description": "Delete Details",
+                        "name": "keyword",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.GoogleKeywordDeleteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/google/sync": {
+            "post": {
+                "description": "Queues a background task to fetch all campaigns from Google and ingest them into the DB.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "google_campaigns"
+                ],
+                "summary": "Sync Google campaigns",
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/meta/ads": {
+            "post": {
+                "description": "Queues ad creation (with creative) via the Meta API and DB ingestion as a background task. Returns 202 immediately. Requires the user's Meta Page ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta"
+                ],
+                "summary": "Create a new ad",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User email (multi-user mode)",
+                        "name": "X-User-Email",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Create ad",
+                        "name": "ad",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AdCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/meta/ads/{id}/insights": {
+            "get": {
+                "description": "Fetches live performance metrics for an ad directly from the Meta API (not local DB). Defaults to last 30 days if dates are omitted.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta"
+                ],
+                "summary": "Get ad insights",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User email (multi-user mode)",
+                        "name": "X-User-Email",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ad ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Start Date (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "End Date (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/meta/adsets": {
+            "post": {
+                "description": "Queues ad set creation via the Meta API and DB ingestion as a background task. Returns 202 immediately.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta"
+                ],
+                "summary": "Create a new ad set",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User email (multi-user mode)",
+                        "name": "X-User-Email",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Create ad set",
+                        "name": "adset",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AdSetCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/meta/adsets/{id}/ads": {
+            "get": {
+                "description": "Fetch all ads belonging to a specific ad set via the Meta API. Pass X-User-Email header to act as a specific user.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta"
+                ],
+                "summary": "Get ads in an ad set",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User email (multi-user mode)",
+                        "name": "X-User-Email",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ad Set ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/meta/auth/token": {
+            "post": {
+                "description": "Exchanges a short-lived Meta token for a long-lived one (60 days),",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Connect a Meta user (exchange token + save credentials)",
+                "parameters": [
+                    {
+                        "description": "Connection payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.MetaConnectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/meta/campaigns": {
+            "get": {
+                "description": "Fetch all ad campaigns from the local database (results are synced from Meta). Pass X-User-Email header to query a specific user's campaigns.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta"
+                ],
+                "summary": "Get all Meta campaigns",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User email (multi-user mode)",
+                        "name": "X-User-Email",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Queues campaign creation via the Meta API and DB ingestion as a background task. Returns 202 immediately.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta"
+                ],
+                "summary": "Create a new Meta campaign",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User email (multi-user mode)",
+                        "name": "X-User-Email",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Create campaign",
+                        "name": "campaign",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CampaignCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/meta/campaigns/{id}": {
+            "patch": {
+                "description": "Updates a campaign's status or name via the Meta API. Pass X-User-Email header to act as a specific user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta"
+                ],
+                "summary": "Update a Meta campaign",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User email (multi-user mode)",
+                        "name": "X-User-Email",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Campaign ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update campaign",
+                        "name": "campaign",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CampaignUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/meta/campaigns/{id}/insights": {
+            "get": {
+                "description": "Fetches live performance metrics for a campaign directly from the Meta API (not local DB). Defaults to last 30 days if dates are omitted.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta"
+                ],
+                "summary": "Get campaign insights",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User email (multi-user mode)",
+                        "name": "X-User-Email",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Campaign ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Start Date (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "End Date (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/meta/status": {
+            "get": {
+                "description": "Check connection and list available pages/catalogs. Pass X-User-Email header to use a specific user's credentials; omits header to fall back to .env defaults.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta"
+                ],
+                "summary": "Check Meta API connection",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User email (multi-user mode)",
+                        "name": "X-User-Email",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/meta/sync": {
+            "post": {
+                "description": "Queues a background task to fetch all campaigns from Meta and ingest them into the DB.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta"
+                ],
+                "summary": "Sync Meta campaigns",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User email (multi-user mode)",
+                        "name": "X-User-Email",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications": {
+            "get": {
+                "description": "Retrieve a specific task notification",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Get Notification by Task ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Task ID",
+                        "name": "task_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TaskNotification"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/history": {
+            "get": {
+                "description": "Retrieve past task notifications for the authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Get Notification History",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 50,
+                        "description": "Limit number of notifications (default: 50)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.TaskNotification"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/stats": {
+            "get": {
+                "description": "Get WebSocket connection statistics",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Get WebSocket Stats",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/ws": {
+            "get": {
+                "description": "WebSocket endpoint for real-time task notifications",
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "WebSocket Notifications",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "101": {
+                        "description": "Switching Protocols"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.AdCreate": {
+            "type": "object",
+            "properties": {
+                "adset_id": {
+                    "type": "string"
+                },
+                "body_text": {
+                    "type": "string"
+                },
+                "headline": {
+                    "type": "string"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "link_url": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.AdSetCreate": {
+            "type": "object",
+            "properties": {
+                "billing_event": {
+                    "type": "string"
+                },
+                "campaign_id": {
+                    "type": "string"
+                },
+                "daily_budget": {
+                    "description": "In paise/cents",
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "optimization_goal": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "targeting": {
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
+        "models.CampaignCreate": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "objective": {
+                    "type": "string"
+                },
+                "special_ad_categories": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CampaignUpdate": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "objective": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.GoogleAdGroupRequest": {
+            "type": "object",
+            "properties": {
+                "campaign_resource_name": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.GoogleAdRequest": {
+            "type": "object",
+            "properties": {
+                "ad_group_resource_name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "final_url": {
+                    "type": "string"
+                },
+                "headline": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.GoogleCampaignRequest": {
+            "type": "object",
+            "properties": {
+                "daily_budget_micros": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.GoogleKeywordDeleteRequest": {
+            "type": "object",
+            "properties": {
+                "resource_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.GoogleKeywordRequest": {
+            "type": "object",
+            "properties": {
+                "ad_group_resource_name": {
+                    "type": "string"
+                },
+                "cpc_bid_micros": {
+                    "type": "integer"
+                },
+                "keywords": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "match_type": {
+                    "description": "EXACT, PHRASE, BROAD",
+                    "type": "string"
+                }
+            }
+        },
+        "models.MetaConnectRequest": {
+            "type": "object",
+            "properties": {
+                "ad_account_id": {
+                    "description": "e.g. \"act_123456789\"",
+                    "type": "string"
+                },
+                "catalog_id": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "page_id": {
+                    "type": "string"
+                },
+                "pixel_id": {
+                    "type": "string"
+                },
+                "short_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.TaskNotification": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "details": {
+                    "description": "JSON string with additional details",
+                    "type": "string"
+                },
+                "error_msg": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "description": "Metadata",
+                    "type": "string"
+                },
+                "platform": {
+                    "$ref": "#/definitions/models.TaskPlatform"
+                },
+                "progress": {
+                    "description": "Progress tracking (0-100)",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "Status and details",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.TaskStatus"
+                        }
+                    ]
+                },
+                "task_id": {
+                    "description": "Task metadata",
+                    "type": "string"
+                },
+                "task_type": {
+                    "description": "e.g. \"google:ads_ingest\", \"meta:campaign_create\"",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "User and context",
+                    "type": "string"
+                }
+            }
+        },
+        "models.TaskPlatform": {
+            "type": "string",
+            "enum": [
+                "google",
+                "meta"
+            ],
+            "x-enum-varnames": [
+                "PlatformGoogle",
+                "PlatformMeta"
+            ]
+        },
+        "models.TaskStatus": {
+            "type": "string",
+            "enum": [
+                "initiated",
+                "pending",
+                "processing",
+                "completed",
+                "failed",
+                "cancelled"
+            ],
+            "x-enum-varnames": [
+                "TaskStatusInitiated",
+                "TaskStatusPending",
+                "TaskStatusProcessing",
+                "TaskStatusCompleted",
+                "TaskStatusFailed",
+                "TaskStatusCancelled"
+            ]
+        }
+    }
+}

@@ -1,0 +1,872 @@
+basePath: /
+definitions:
+  models.AdCreate:
+    properties:
+      adset_id:
+        type: string
+      body_text:
+        type: string
+      headline:
+        type: string
+      image_url:
+        type: string
+      link_url:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+    type: object
+  models.AdSetCreate:
+    properties:
+      billing_event:
+        type: string
+      campaign_id:
+        type: string
+      daily_budget:
+        description: In paise/cents
+        type: integer
+      name:
+        type: string
+      optimization_goal:
+        type: string
+      status:
+        type: string
+      targeting:
+        additionalProperties: true
+        type: object
+    type: object
+  models.CampaignCreate:
+    properties:
+      name:
+        type: string
+      objective:
+        type: string
+      special_ad_categories:
+        items:
+          type: string
+        type: array
+      status:
+        type: string
+    type: object
+  models.CampaignUpdate:
+    properties:
+      name:
+        type: string
+      objective:
+        type: string
+      status:
+        type: string
+    type: object
+  models.GoogleAdGroupRequest:
+    properties:
+      campaign_resource_name:
+        type: string
+      name:
+        type: string
+    type: object
+  models.GoogleAdRequest:
+    properties:
+      ad_group_resource_name:
+        type: string
+      description:
+        type: string
+      final_url:
+        type: string
+      headline:
+        type: string
+      name:
+        type: string
+    type: object
+  models.GoogleCampaignRequest:
+    properties:
+      daily_budget_micros:
+        type: integer
+      name:
+        type: string
+    type: object
+  models.GoogleKeywordDeleteRequest:
+    properties:
+      resource_name:
+        type: string
+    type: object
+  models.GoogleKeywordRequest:
+    properties:
+      ad_group_resource_name:
+        type: string
+      cpc_bid_micros:
+        type: integer
+      keywords:
+        items:
+          type: string
+        type: array
+      match_type:
+        description: EXACT, PHRASE, BROAD
+        type: string
+    type: object
+  models.MetaConnectRequest:
+    properties:
+      ad_account_id:
+        description: e.g. "act_123456789"
+        type: string
+      catalog_id:
+        type: string
+      email:
+        type: string
+      page_id:
+        type: string
+      pixel_id:
+        type: string
+      short_token:
+        type: string
+    type: object
+  models.TaskNotification:
+    properties:
+      created_at:
+        type: string
+      details:
+        description: JSON string with additional details
+        type: string
+      error_msg:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+      metadata:
+        description: Metadata
+        type: string
+      platform:
+        $ref: '#/definitions/models.TaskPlatform'
+      progress:
+        description: Progress tracking (0-100)
+        type: integer
+      status:
+        allOf:
+        - $ref: '#/definitions/models.TaskStatus'
+        description: Status and details
+      task_id:
+        description: Task metadata
+        type: string
+      task_type:
+        description: e.g. "google:ads_ingest", "meta:campaign_create"
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        description: User and context
+        type: string
+    type: object
+  models.TaskPlatform:
+    enum:
+    - google
+    - meta
+    type: string
+    x-enum-varnames:
+    - PlatformGoogle
+    - PlatformMeta
+  models.TaskStatus:
+    enum:
+    - initiated
+    - pending
+    - processing
+    - completed
+    - failed
+    - cancelled
+    type: string
+    x-enum-varnames:
+    - TaskStatusInitiated
+    - TaskStatusPending
+    - TaskStatusProcessing
+    - TaskStatusCompleted
+    - TaskStatusFailed
+    - TaskStatusCancelled
+host: localhost:8081
+info:
+  contact: {}
+  description: Multi-Platform Ads Management API (Meta & Google) for Realify.
+  title: Realify API
+  version: "1.0"
+paths:
+  /callback:
+    get:
+      description: Receives the auth code from Google and exchanges it for tokens
+      parameters:
+      - description: Auth Code from Google
+        in: query
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Google Ads OAuth Callback
+      tags:
+      - google_auth
+  /google/adgroups:
+    get:
+      description: Fetch all ad groups for a specific campaign
+      parameters:
+      - description: Campaign Resource Name
+        in: query
+        name: campaign_resource_name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: List Google Ad Groups
+      tags:
+      - google_adgroups
+    post:
+      consumes:
+      - application/json
+      description: Queues Google Ads ad group creation as a background task. Returns
+        202 immediately.
+      parameters:
+      - description: Ad Group Details
+        in: body
+        name: adgroup
+        required: true
+        schema:
+          $ref: '#/definitions/models.GoogleAdGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create Google Ad Group
+      tags:
+      - google_adgroups
+  /google/adgroups/{id}/insights:
+    get:
+      description: Fetch real-time performance metrics for a specific ad group ID
+      parameters:
+      - description: Ad Group ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Get Google Ad Group Performance Insights
+      tags:
+      - google_adgroups
+  /google/ads:
+    get:
+      description: Fetch all ads for a specific ad group
+      parameters:
+      - description: Ad Group Resource Name
+        in: query
+        name: ad_group_resource_name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: List Google Ads
+      tags:
+      - google_ads
+    post:
+      consumes:
+      - application/json
+      description: Queues Google responsive search ad creation as a background task.
+        Returns 202 immediately.
+      parameters:
+      - description: Ad Details
+        in: body
+        name: ad
+        required: true
+        schema:
+          $ref: '#/definitions/models.GoogleAdRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create Google Ad
+      tags:
+      - google_ads
+  /google/auth:
+    get:
+      description: Redirects user to Google OAuth2 consent screen
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Google Ads OAuth Login
+      tags:
+      - google_auth
+  /google/campaigns:
+    delete:
+      description: Remove a campaign by its resource name
+      parameters:
+      - description: Resource Name
+        in: query
+        name: resource_name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Delete Google Campaign
+      tags:
+      - google_campaigns
+    get:
+      description: Fetch all campaigns for the configured customer ID
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: List Google Campaigns
+      tags:
+      - google_campaigns
+    post:
+      consumes:
+      - application/json
+      description: Queues Google Ads campaign creation as a background task. Returns
+        202 immediately.
+      parameters:
+      - description: Campaign Details
+        in: body
+        name: campaign
+        required: true
+        schema:
+          $ref: '#/definitions/models.GoogleCampaignRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create Google Campaign
+      tags:
+      - google_campaigns
+  /google/campaigns/{id}/insights:
+    get:
+      description: Fetch real-time performance metrics for a specific campaign ID
+      parameters:
+      - description: Campaign ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Get Google Campaign Performance Insights
+      tags:
+      - google_campaigns
+  /google/customers:
+    get:
+      description: Fetch a list of accessible Google Ads customer accounts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Get Google Ads Customers
+      tags:
+      - google
+  /google/keywords:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a specific keyword by resource name
+      parameters:
+      - description: Delete Details
+        in: body
+        name: keyword
+        required: true
+        schema:
+          $ref: '#/definitions/models.GoogleKeywordDeleteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Delete Google Keyword
+      tags:
+      - google_keywords
+    get:
+      description: Fetch all keywords for an ad group
+      parameters:
+      - description: Ad Group Resource Name
+        in: query
+        name: ad_group_resource_name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: List Google Keywords
+      tags:
+      - google_keywords
+    post:
+      consumes:
+      - application/json
+      description: Add keywords to an ad group
+      parameters:
+      - description: Keyword Details
+        in: body
+        name: keywords
+        required: true
+        schema:
+          $ref: '#/definitions/models.GoogleKeywordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Create Google Keywords
+      tags:
+      - google_keywords
+  /google/sync:
+    post:
+      description: Queues a background task to fetch all campaigns from Google and
+        ingest them into the DB.
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Sync Google campaigns
+      tags:
+      - google_campaigns
+  /meta/ads:
+    post:
+      consumes:
+      - application/json
+      description: Queues ad creation (with creative) via the Meta API and DB ingestion
+        as a background task. Returns 202 immediately. Requires the user's Meta Page
+        ID.
+      parameters:
+      - description: User email (multi-user mode)
+        in: header
+        name: X-User-Email
+        type: string
+      - description: Create ad
+        in: body
+        name: ad
+        required: true
+        schema:
+          $ref: '#/definitions/models.AdCreate'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new ad
+      tags:
+      - meta
+  /meta/ads/{id}/insights:
+    get:
+      description: Fetches live performance metrics for an ad directly from the Meta
+        API (not local DB). Defaults to last 30 days if dates are omitted.
+      parameters:
+      - description: User email (multi-user mode)
+        in: header
+        name: X-User-Email
+        type: string
+      - description: Ad ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Start Date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: End Date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get ad insights
+      tags:
+      - meta
+  /meta/adsets:
+    post:
+      consumes:
+      - application/json
+      description: Queues ad set creation via the Meta API and DB ingestion as a background
+        task. Returns 202 immediately.
+      parameters:
+      - description: User email (multi-user mode)
+        in: header
+        name: X-User-Email
+        type: string
+      - description: Create ad set
+        in: body
+        name: adset
+        required: true
+        schema:
+          $ref: '#/definitions/models.AdSetCreate'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new ad set
+      tags:
+      - meta
+  /meta/adsets/{id}/ads:
+    get:
+      description: Fetch all ads belonging to a specific ad set via the Meta API.
+        Pass X-User-Email header to act as a specific user.
+      parameters:
+      - description: User email (multi-user mode)
+        in: header
+        name: X-User-Email
+        type: string
+      - description: Ad Set ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get ads in an ad set
+      tags:
+      - meta
+  /meta/auth/token:
+    post:
+      consumes:
+      - application/json
+      description: Exchanges a short-lived Meta token for a long-lived one (60 days),
+      parameters:
+      - description: Connection payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.MetaConnectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Connect a Meta user (exchange token + save credentials)
+      tags:
+      - auth
+  /meta/campaigns:
+    get:
+      description: Fetch all ad campaigns from the local database (results are synced
+        from Meta). Pass X-User-Email header to query a specific user's campaigns.
+      parameters:
+      - description: User email (multi-user mode)
+        in: header
+        name: X-User-Email
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all Meta campaigns
+      tags:
+      - meta
+    post:
+      consumes:
+      - application/json
+      description: Queues campaign creation via the Meta API and DB ingestion as a
+        background task. Returns 202 immediately.
+      parameters:
+      - description: User email (multi-user mode)
+        in: header
+        name: X-User-Email
+        type: string
+      - description: Create campaign
+        in: body
+        name: campaign
+        required: true
+        schema:
+          $ref: '#/definitions/models.CampaignCreate'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new Meta campaign
+      tags:
+      - meta
+  /meta/campaigns/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Updates a campaign's status or name via the Meta API. Pass X-User-Email
+        header to act as a specific user.
+      parameters:
+      - description: User email (multi-user mode)
+        in: header
+        name: X-User-Email
+        type: string
+      - description: Campaign ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update campaign
+        in: body
+        name: campaign
+        required: true
+        schema:
+          $ref: '#/definitions/models.CampaignUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update a Meta campaign
+      tags:
+      - meta
+  /meta/campaigns/{id}/insights:
+    get:
+      description: Fetches live performance metrics for a campaign directly from the
+        Meta API (not local DB). Defaults to last 30 days if dates are omitted.
+      parameters:
+      - description: User email (multi-user mode)
+        in: header
+        name: X-User-Email
+        type: string
+      - description: Campaign ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Start Date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: End Date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get campaign insights
+      tags:
+      - meta
+  /meta/status:
+    get:
+      description: Check connection and list available pages/catalogs. Pass X-User-Email
+        header to use a specific user's credentials; omits header to fall back to
+        .env defaults.
+      parameters:
+      - description: User email (multi-user mode)
+        in: header
+        name: X-User-Email
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Check Meta API connection
+      tags:
+      - meta
+  /meta/sync:
+    post:
+      description: Queues a background task to fetch all campaigns from Meta and ingest
+        them into the DB.
+      parameters:
+      - description: User email (multi-user mode)
+        in: header
+        name: X-User-Email
+        type: string
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Sync Meta campaigns
+      tags:
+      - meta
+  /notifications:
+    get:
+      description: Retrieve a specific task notification
+      parameters:
+      - description: Task ID
+        in: query
+        name: task_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TaskNotification'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Notification by Task ID
+      tags:
+      - notifications
+  /notifications/history:
+    get:
+      description: Retrieve past task notifications for the authenticated user
+      parameters:
+      - default: 50
+        description: 'Limit number of notifications (default: 50)'
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.TaskNotification'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Notification History
+      tags:
+      - notifications
+  /notifications/stats:
+    get:
+      description: Get WebSocket connection statistics
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get WebSocket Stats
+      tags:
+      - notifications
+  /ws:
+    get:
+      description: WebSocket endpoint for real-time task notifications
+      parameters:
+      - description: User ID
+        in: query
+        name: user_id
+        required: true
+        type: string
+      responses:
+        "101":
+          description: Switching Protocols
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: WebSocket Notifications
+      tags:
+      - notifications
+swagger: "2.0"
