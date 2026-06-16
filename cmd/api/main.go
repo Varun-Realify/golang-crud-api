@@ -80,6 +80,9 @@ func main() {
 	r.HandleFunc("/google/keywords", handlers.ListGoogleKeywords).Methods("GET")
 	r.HandleFunc("/google/keywords", handlers.DeleteGoogleKeyword).Methods("DELETE")
 
+	// User Routes
+	r.HandleFunc("/users/default", handlers.GetOrCreateDefaultUser).Methods("GET")
+
 	// WebSocket Notification Routes
 	r.HandleFunc("/ws", handlers.HandleWebSocket).Methods("GET")
 	r.HandleFunc("/notifications/history", handlers.GetNotificationHistory).Methods("GET")

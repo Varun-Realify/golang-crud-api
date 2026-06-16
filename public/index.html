@@ -171,8 +171,8 @@
     <div id="notifications-container" class="fixed bottom-4 right-4 space-y-2 z-50 max-w-md"></div>
 
     <script>
-        const API_BASE = "http://localhost:8080";
-        const WS_BASE = "ws://localhost:8080";
+        const API_BASE = "http://localhost:8081";
+        const WS_BASE = "ws://localhost:8081";
         let ws = null;
         let recentNotifications = [];
         const MAX_NOTIFICATIONS = 50;
@@ -317,17 +317,13 @@
         }
 
         async function init() {
-            // Get or create user ID
             let userId = localStorage.getItem('user_id');
             if (!userId) {
-                // For demo, use a UUID v4
-                userId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                    return v.toString(16);
-                });
+                const res = await fetch(`${API_BASE}/users/default`);
+                const user = await res.json();
+                userId = user.id;
                 localStorage.setItem('user_id', userId);
             }
-
             await checkStatus();
             connectWebSocket(userId);
             switchTab('dashboard', document.querySelector('.sidebar-item'));
@@ -535,7 +531,7 @@
             view.innerHTML = html;
         }
 
-        function renderDashboard() {
+        async function renderDashboard() {
             const view = document.getElementById('main-view');
             view.innerHTML = `
                 <div id="stats-container" class="grid grid-cols-1 md:grid-cols-4 gap-6">

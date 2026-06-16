@@ -153,6 +153,27 @@ func BroadcastNotificationToUser(userID string, message interface{}) {
 	}
 }
 
+// GetOrCreateDefaultUser returns the first user in the DB, creating a demo user if none exists.
+// @Summary Get or Create Default User
+// @Description Returns the first user record, or creates a demo user if the table is empty
+// @Tags users
+// @Produce json
+// @Success 200 {object} models.User
+// @Failure 500 {object} map[string]string
+// @Router /users/default [get]
+func GetOrCreateDefaultUser(w http.ResponseWriter, r *http.Request) {
+	var user models.User
+	if err := database.DB.First(&user).Error; err != nil {
+		user = models.User{Name: "Demo User", Email: "demo@realify.local"}
+		if err := database.DB.Create(&user).Error; err != nil {
+			http.Error(w, "Failed to create user", http.StatusInternalServerError)
+			return
+		}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
+}
+
 // GetWSStats returns WebSocket connection statistics
 // @Summary Get WebSocket Stats
 // @Description Get WebSocket connection statistics
