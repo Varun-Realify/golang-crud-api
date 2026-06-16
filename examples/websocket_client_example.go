@@ -3,14 +3,15 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
@@ -156,12 +157,26 @@ func (c *WebSocketClient) url_encode(s string) string {
 
 // Example usage
 func main() {
-	// Generate a user ID for testing
-	userID := uuid.New().String()
-	fmt.Printf("User ID: %s\n", userID)
+	// Obtain or create a demo user via the API so we don't hardcode IDs
+	apiHost := "localhost:8081"
+	resp, err := http.Get(fmt.Sprintf("http://%s/users/default", apiHost))
+	if err != nil {
+		log.Fatalf("Failed to request demo user: %v", err)
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		log.Fatalf("Failed to get demo user: %s", string(body))
+	}
+	var user struct{ ID string `json:"id"` }
+	if err := json.Unmarshal(body, &user); err != nil {
+		log.Fatalf("Failed to parse demo user response: %v", err)
+	}
+	userID := user.ID
+	fmt.Printf("Using demo user ID: %s\n", userID)
 
 	// Create client
-	client := NewWebSocketClient("localhost:8080", userID)
+	client := NewWebSocketClient(apiHost, userID)
 
 	// Connect to WebSocket
 	if err := client.Connect(); err != nil {

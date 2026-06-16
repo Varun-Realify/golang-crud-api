@@ -1,12 +1,17 @@
 package websocket
 
 import (
+	"context"
 	"encoding/json"
 	"log"
+	"os"
 	"time"
+
+	"Realify/models"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/redis/go-redis/v9"
 )
 
 // Manager handles WebSocket connections
@@ -32,6 +37,40 @@ func NewManager() *Manager {
 // Start starts the manager and hub
 func (m *Manager) Start() {
 	go m.Hub.Run()
+	go m.startRedisSubscriber()
+}
+
+func (m *Manager) startRedisSubscriber() {
+	redisAddr := os.Getenv("REDIS_ADDR")
+	if redisAddr == "" {
+		redisAddr = "127.0.0.1:6379"
+	}
+
+	client := redis.NewClient(&redis.Options{Addr: redisAddr})
+	ctx := context.Background()
+
+	pubsub := client.PSubscribe(ctx, "notifications:*")
+	if _, err := pubsub.Receive(ctx); err != nil {
+		log.Printf("WebSocket Redis subscribe failed: %v", err)
+		return
+	}
+
+	ch := pubsub.Channel()
+	log.Printf("WebSocket manager subscribed to Redis notification channels: notifications:*")
+
+	for msg := range ch {
+		var notification models.NotificationMessage
+		if err := json.Unmarshal([]byte(msg.Payload), &notification); err != nil {
+			log.Printf("Failed to unmarshal notification payload: %v", err)
+			continue
+		}
+
+		if notification.UserID != "" {
+			m.BroadcastToUser(notification.UserID, notification)
+		} else {
+			m.BroadcastToAll(notification)
+		}
+	}
 }
 
 // HandleConnection handles a new WebSocket connection

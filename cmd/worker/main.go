@@ -71,6 +71,7 @@ func broadcastNotification(
 			TaskID:    taskID,
 			TaskType:  taskType,
 			Platform:  string(platform),
+			UserID:    userID,
 			Status:    status,
 			Message:   message,
 			Progress:  progress,

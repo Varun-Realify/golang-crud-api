@@ -47,10 +47,12 @@ func (np *NotificationPublisher) PublishNotification(notification models.Notific
 		log.Printf("Failed to publish to %s: %v", channel, err)
 	}
 
-	// Also publish to user-specific channel
-	userChannel := "notifications:user:" + notification.TaskID
-	if err := np.client.Publish(ctx, userChannel, data).Err(); err != nil {
-		log.Printf("Failed to publish to %s: %v", userChannel, err)
+	// Also publish to user-specific channel if the message includes a user ID
+	if notification.UserID != "" {
+		userChannel := "notifications:user:" + notification.UserID
+		if err := np.client.Publish(ctx, userChannel, data).Err(); err != nil {
+			log.Printf("Failed to publish to %s: %v", userChannel, err)
+		}
 	}
 
 	return nil

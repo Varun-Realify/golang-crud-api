@@ -57,6 +57,7 @@ type NotificationMessage struct {
 	TaskID    string                 `json:"task_id"`
 	TaskType  string                 `json:"task_type"`
 	Platform  string                 `json:"platform"`
+	UserID    string                 `json:"user_id"`
 	Status    TaskStatus             `json:"status"`
 	Message   string                 `json:"message"`
 	Progress  int                    `json:"progress"`

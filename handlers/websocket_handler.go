@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"Realify/database"
@@ -40,6 +41,7 @@ var upgrader = websocket.Upgrader{
 // @Router /ws [get]
 func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
+	log.Printf("HandleWebSocket called: user_id=%s remote=%s", userID, r.RemoteAddr)
 	if userID == "" {
 		http.Error(w, "user_id query parameter is required", http.StatusBadRequest)
 		return
@@ -55,7 +57,10 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	// Upgrade HTTP connection to WebSocket
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		http.Error(w, "Failed to upgrade connection", http.StatusInternalServerError)
+		// The upgrader may already have written an HTTP error response.
+		// Log the error and return without calling http.Error to avoid
+		// a second WriteHeader (which causes a superfluous WriteHeader warning).
+		log.Printf("WebSocket upgrade failed for user %s: %v", userID, err)
 		return
 	}
 
@@ -67,16 +72,17 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 // @Summary Get Notification History
 // @Description Retrieve past task notifications for the authenticated user
 // @Tags notifications
+// @Param user_id query string true "User ID"
 // @Param limit query int false "Limit number of notifications (default: 50)" default(50)
 // @Produce json
 // @Success 200 {array} models.TaskNotification
 // @Failure 400 {object} map[string]string
 // @Router /notifications/history [get]
 func GetNotificationHistory(w http.ResponseWriter, r *http.Request) {
-	// Extract user ID from context
-	userID, ok := r.Context().Value("user_id").(string)
-	if !ok || userID == "" {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	// Extract user ID from query parameter
+	userID := r.URL.Query().Get("user_id")
+	if userID == "" {
+		http.Error(w, "user_id query parameter is required", http.StatusBadRequest)
 		return
 	}
 
@@ -112,6 +118,7 @@ func GetNotificationHistory(w http.ResponseWriter, r *http.Request) {
 // @Summary Get Notification by Task ID
 // @Description Retrieve a specific task notification
 // @Tags notifications
+// @Param user_id query string true "User ID"
 // @Param task_id query string true "Task ID"
 // @Produce json
 // @Success 200 {object} models.TaskNotification
@@ -119,16 +126,15 @@ func GetNotificationHistory(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} map[string]string
 // @Router /notifications [get]
 func GetNotificationByTaskID(w http.ResponseWriter, r *http.Request) {
-	taskID := r.URL.Query().Get("task_id")
-	if taskID == "" {
-		http.Error(w, "task_id query parameter is required", http.StatusBadRequest)
+	userID := r.URL.Query().Get("user_id")
+	if userID == "" {
+		http.Error(w, "user_id query parameter is required", http.StatusBadRequest)
 		return
 	}
 
-	// Extract user ID from context
-	userID, ok := r.Context().Value("user_id").(string)
-	if !ok || userID == "" {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	taskID := r.URL.Query().Get("task_id")
+	if taskID == "" {
+		http.Error(w, "task_id query parameter is required", http.StatusBadRequest)
 		return
 	}
 
